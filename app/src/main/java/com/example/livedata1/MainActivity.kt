@@ -22,16 +22,18 @@ class MainActivity : AppCompatActivity() {
         var textView = findViewById<TextView>(R.id.tvNumber)
         var buttonNext = findViewById<Button>(R.id.button1)
         var buttonBack = findViewById<Button>(R.id.button)
+        var buttonAddQuestion= findViewById<Button>(R.id.buttonAddQuestion)
         var progressBar = findViewById<ProgressBar>(R.id.progressBar)
         var questionText = findViewById<TextView>(R.id.tvQuestion)
         var editText = findViewById<TextView>(R.id.editText)
         var scoreTV = findViewById<TextView>(R.id.scoreTV)
+        var countTV = findViewById<TextView>(R.id.textViewQuestionCount)
        // scoreTV.setTextColor(R.color.red)
        // scoreTV.setBackgroundColor(R.color.teal_200)
         // scoreTV.setHintTextColor(R.color.teal_200 )
 
 
-        progressBar.max = vmodel.questionCount
+        //progressBar.max = vmodel.questionCountLiveData.value!!
 
         buttonNext.setOnClickListener {
             vmodel.updateScore(editText.text.toString())
@@ -43,6 +45,10 @@ class MainActivity : AppCompatActivity() {
             vmodel.backClicked()
         }
 
+        buttonAddQuestion.setOnClickListener {
+            QuestionRepository.insertQuestion(QuestionRepository.newRandomQuestion())
+        }
+
         val numberObserver = Observer<Int> { number ->
                 textView.text = number.toString()
                 progressBar.progress = number
@@ -52,7 +58,11 @@ class MainActivity : AppCompatActivity() {
             scoreTV.text = score.toString()
         }
         val scoreColorObserver = Observer<Int> { score ->
-            scoreTV.setTextColor(score)
+            when(score){
+                R.color.red -> scoreTV.setTextColor(resources.getColor(R.color.red))
+                R.color.yellow -> scoreTV.setTextColor(resources.getColor(R.color.yellow))
+                else -> scoreTV.setTextColor(resources.getColor(R.color.green))
+            }
         }
 
         val buttonEnabledObserver = Observer<Boolean>{  enabled ->
@@ -67,12 +77,19 @@ class MainActivity : AppCompatActivity() {
             questionText.text = question
         }
 
+        val questionCountObserver = Observer<Int>{ questionCount ->
+            progressBar.max = questionCount
+            countTV.text = questionCount.toString()
+
+        }
+
         vmodel.questionLiveData.observe(this , questionObserver)
         vmodel.nextEnabledLiveData.observe(this , buttonEnabledObserver)
         vmodel.backEnabledLiveData.observe(this , buttonBackEnabledObserver)
         vmodel.numberLiveData.observe(this , numberObserver)
         vmodel.scoreLiveData.observe(this , scoreObserver)
         vmodel.scoreColorLiveData.observe(this , scoreColorObserver)
+        vmodel.questionCountLiveData.observe(this , questionCountObserver)
 
     }
 }
